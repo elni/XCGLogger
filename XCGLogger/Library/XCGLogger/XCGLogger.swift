@@ -81,9 +81,11 @@ public class XCGConsoleLogDestination : XCGLogDestinationProtocol, DebugPrintabl
             formattedDate = dateFormatter.stringFromDate(logDetails.date)
         }
 
-        var fullLogMessage: String =  "\(formattedDate) \(extendedDetails)\(logDetails.functionName): \(logDetails.logMessage)\n"
-
         dispatch_async(XCGLogger.logQueue) {
+            let fullLogMessage: String =
+                formattedDate +
+                XCGLogger.colorize(logDetails.logLevel, str: "\(extendedDetails)\(logDetails.functionName): \(logDetails.logMessage)\n")
+            
             print(fullLogMessage)
         }
     }
@@ -99,9 +101,10 @@ public class XCGConsoleLogDestination : XCGLogDestinationProtocol, DebugPrintabl
             formattedDate = dateFormatter.stringFromDate(logDetails.date)
         }
 
-        var fullLogMessage: String =  "\(formattedDate) \(extendedDetails): \(logDetails.logMessage)\n"
-
         dispatch_async(XCGLogger.logQueue) {
+            let fullLogMessage: String =
+                formattedDate +
+                XCGLogger.colorize(logDetails.logLevel, str: "\(extendedDetails): \(logDetails.logMessage)\n")
             print(fullLogMessage)
         }
     }
@@ -263,7 +266,10 @@ public class XCGLogger : DebugPrintable {
         public static let logQueueIdentifier = "com.cerebralgardens.xcglogger.queue"
         public static let versionString = "2.0"
     }
-
+    
+    static let ESCAPE = "\u{001b}["
+    static let RESET = ESCAPE + ";"   // Clear any foreground or background color
+    
     // MARK: - Enums
     public enum LogLevel: Int, Comparable {
         case Verbose
@@ -273,6 +279,25 @@ public class XCGLogger : DebugPrintable {
         case Error
         case Severe
         case None
+
+        public func color() -> String {
+            switch self {
+                case .Verbose:
+                    return "\(ESCAPE)fg89,89,89; " // Dark grey
+                case .Debug:
+                    return "\(ESCAPE)fg209,209,209; " // White
+                case .Info:
+                    return "\(ESCAPE)fg3,230,71; " // Green
+                case .Warning:
+                    return "\(ESCAPE)fg255,168,16; " // Orange
+                case .Error:
+                    return "\(ESCAPE)fg255,16,16; " // Red
+                case .Severe:
+                    return "\(ESCAPE)fg200,16,255; " // Purple
+                case .None:
+                    return "\(ESCAPE)fg200,16,255; "
+            }
+        }
 
         public func description() -> String {
             switch self {
@@ -292,6 +317,10 @@ public class XCGLogger : DebugPrintable {
                     return "None"
             }
         }
+    }
+    
+    private class func colorize(logLevel: LogLevel, str: String) -> String {
+        return "\(logLevel.color()) \(str) \(RESET)"
     }
 
     // MARK: - Properties (Options)
@@ -337,7 +366,7 @@ public class XCGLogger : DebugPrintable {
         // Setup a standard console log destination
         addLogDestination(XCGConsoleLogDestination(owner: self, identifier: XCGLogger.constants.baseConsoleLogDestinationIdentifier))
     }
-
+    
     // MARK: - Default instance
     public class func defaultInstance() -> XCGLogger {
         struct statics {
