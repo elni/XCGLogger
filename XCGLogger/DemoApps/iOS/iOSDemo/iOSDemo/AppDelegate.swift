@@ -35,8 +35,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Setup XCGLogger
         let logPath : NSURL = self.cacheDirectory.URLByAppendingPathComponent("XCGLogger_Log.txt")
         log.setup(logLevel: .Debug, showThreadName: true, showLogLevel: true, showFileNames: true, showLineNumbers: true, writeToFile: logPath)
+        
+        log.logDestinations
+            .filter { $0 is XCGConsoleLogDestination }
+            .map { ($0 as! XCGConsoleLogDestination).colorize = true }
 
-        return true
+        return true 
     }
 
     func applicationWillResignActive(application: UIApplication) {

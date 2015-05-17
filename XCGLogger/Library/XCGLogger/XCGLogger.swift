@@ -52,6 +52,7 @@ public class XCGConsoleLogDestination : XCGLogDestinationProtocol, DebugPrintabl
     public var showFileName: Bool = true
     public var showLineNumber: Bool = true
     public var showLogLevel: Bool = true
+    public var colorize: Bool = false
 
     public init(owner: XCGLogger, identifier: String = "") {
         self.owner = owner
@@ -82,10 +83,11 @@ public class XCGConsoleLogDestination : XCGLogDestinationProtocol, DebugPrintabl
         }
 
         dispatch_async(XCGLogger.logQueue) {
-            let fullLogMessage: String =
-                formattedDate +
-                XCGLogger.colorize(logDetails.logLevel, str: "\(extendedDetails)\(logDetails.functionName): \(logDetails.logMessage)\n")
-            
+            let fullLogMessage: String = formattedDate + (
+                (self.colorize) ?
+                    XCGLogger.colorize(logDetails.logLevel, str: "\(extendedDetails)\(logDetails.functionName): \(logDetails.logMessage)\n") :
+                    " \(extendedDetails)\(logDetails.functionName): \(logDetails.logMessage)\n"
+            )
             print(fullLogMessage)
         }
     }
@@ -102,10 +104,11 @@ public class XCGConsoleLogDestination : XCGLogDestinationProtocol, DebugPrintabl
         }
 
         dispatch_async(XCGLogger.logQueue) {
-            let fullLogMessage: String =
-                formattedDate +
-                XCGLogger.colorize(logDetails.logLevel, str: "\(extendedDetails): \(logDetails.logMessage)\n")
-            print(fullLogMessage)
+            let fullLogMessage: String = formattedDate + (
+                (self.colorize) ?
+                    XCGLogger.colorize(logDetails.logLevel, str: "\(extendedDetails)\(logDetails.functionName): \(logDetails.logMessage)\n") :
+                    " \(extendedDetails)\(logDetails.functionName): \(logDetails.logMessage)\n"
+            )
         }
     }
 
